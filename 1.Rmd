@@ -1,0 +1,131 @@
+---
+title: 'Compulsory exercise 2: Group XX'
+author: "NN1, NN2 and NN3"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: pdf_document
+subtitle: TMA4268 Statistical Learning V2018
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,results="hold",message = FALSE,warning=FALSE)
+```
+##1a)
+  
+* Q1: How many possible models?
+* Q2: How to choose best model
+
+```{r,echo=FALSE,results="hide"}
+library(ISLR)
+ourAuto=data.frame("mpg"=Auto$mpg,"cylinders"=factor(cut(Auto$cylinders,2)),
+                   "displace"=Auto$displacement,"horsepower"=Auto$horsepower,
+                   "weight"=Auto$weight,"acceleration"=Auto$acceleration, 
+                   "year"=Auto$year,"origin"=as.factor(Auto$origin))
+colnames(ourAuto)
+ntot=dim(ourAuto)[1]
+ntot
+set.seed(4268)
+testids=sort(sample(1:ntot,ceiling(0.2*ntot),replace=FALSE))
+ourAutoTrain=ourAuto[-testids,]
+ourAutoTest=ourAuto[testids,]
+library(leaps)
+res=regsubsets(mpg~.,nbest=1,data=ourAutoTrain)
+sumres=summary(res)
+sumres
+plot(res,scale="bic")
+sumres$bic
+which.min(sumres$bic)
+coef(res,id=which.min(sumres$bic))
+```
+
+##1b)
+
+* Q3: How best model chosen for each model complexity + best for 2 covariates.
+* Q4: Choose model and evaluate.
+
+```{r, eval=TRUE,echo=TRUE}
+# R code to fit your final model.
+```
+
+* Q5: Use this model fit to predict new values for `ourAutoTest` and report the MSE. 
+
+
+##1c)
+
+* Q6. Explain how $k$-fold cross-validation is performed. 
+* Q7. Why may $k$-fold cross-validation be preferred to leave-one-out cross-validation? 
+
+##1d@9
+
+* Q8. R-code for $10$-fold CV.
+
+```{r,eval=TRUE,echo=TRUE,results="hold"}
+library(caret)
+library(leaps)
+# and so on
+```
+
+
+* Q9. What is the optimal model complexity (number of parameters) in your regression?
+
+```{r,echo=TRUE, eval=TRUE}
+# MSE on test set
+```
+
+* Q10. Evaluate best model (or refer to Q4 and Q5).
+
+##2a) Explain figures
+
+* Q11: Which figure (1 or 2) corresponds to ridge and which figure corresponds to lasso? 
+* Q12. Use the two figures and the above formulas to explain... 
+* Q13. Can you use lasso and/or ridge regression to perform model selection similar to what you did in Problem 1? 
+
+```{r,echo=FALSE,results="hide"}
+library(glmnet)
+set.seed(4268)
+
+x=model.matrix(mpg~.,ourAutoTrain)[,-1] #-1 to remove the intercept.
+head(x)
+y=ourAutoTrain$mpg
+
+lambda=c(seq(from=5,to=0.1,length.out=150),0.01,0.0001) #Create a set of tuning parameters, adding low value to also see least squares fit
+cv.out=cv.glmnet(x,y,alpha=1,nfolds=10,lambda=lambda, standardize=TRUE) #alpha=1 gives lasso, alpha=0 gives ridge
+
+plot(cv.out)
+
+```
+
+##2b) Finding the optimal $\lambda$
+
+* Q14: Explain what the function `cv.glmnet` does. 
+* Q15. Explain what we see in the above plot.
+* Q16: Finding the optimal lambda:
+
+```{r,echo=TRUE, eval=TRUE}
+# need some R code here
+```
+
+##3c) Prediction
+
+* Q17: Fit model, coefficients,...
+```{r,echo=TRUE, eval=TRUE}
+# fit the lasso
+```
+
+```{r,,echo=TRUE, eval=TRUE}
+# 0 for cylinder, displace, horsepower, weight, acceleration, year, 0 for origin2 and 0 for origin3
+newx=matrix(c(0,150,100,3000,10,82,0,0),nrow=1)
+# then do the prediction
+```
+
+* Q18: Predicted value:
+
+##3a)
+
+* Q19: Fitting the specified `gam`
+
+```{r,echo=TRUE, eval=TRUE}
+library(gam)
+# write R code
+```
+
+* Q20: The cubic spline basis.
