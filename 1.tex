@@ -208,15 +208,65 @@
   calculations for the penalties, using \(BIC\)-criterion in addition to
   other penalty-adding methods. Thus we can from the
   \texttt{regsubsets}-function also retrieve the \(BIC\)-values for each
-  model complexity, and choose the lowest one as our model. F Choose
-  model and evaluate.
+  model complexity, and choose the lowest one as our model. The figure
+  above, which is the result of plotting the \texttt{regsubsets}-data
+  also contains the necessary information for choosing the best model.
+  On the \(y\) scale, we see \(BIC\)-values for the models of different
+  complexity, and on the \(x\)-scale we see which predictors are
+  contained in the best model of this complexity, as a black box. We
+  choose the model with the lowest \(BIC\)-value, which we see has
+  \(BIC\sim -520\), and contains seven predictors, all but acceleration.
+  Hence, this is our best model according to the best subset method
+  using \(BIC\)-criterion on the training data. From the prints in the
+  task we see th more exact \(BIC=-516.9417\), which was rounded off to
+  -520. The following R-code fits this model to the training data.
+  Choose model and evaluate.
 \end{itemize}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{# R code to fit your final model.}
+\KeywordTok{library}\NormalTok{(nortest)}
+\NormalTok{trainLm=}\KeywordTok{lm}\NormalTok{(mpg}\OperatorTok{~}\NormalTok{. }\OperatorTok{-}\NormalTok{acceleration, }\DataTypeTok{data=}\NormalTok{ourAutoTrain)}
+\KeywordTok{summary}\NormalTok{(trainLm)}
+\NormalTok{yhat=}\KeywordTok{predict}\NormalTok{(trainLm,ourAutoTest)}
+\KeywordTok{mean}\NormalTok{((ourAutoTest}\OperatorTok{$}\NormalTok{mpg}\OperatorTok{-}\NormalTok{yhat)}\OperatorTok{^}\DecValTok{2}\NormalTok{)}
+\KeywordTok{ad.test}\NormalTok{(}\KeywordTok{rstudent}\NormalTok{(trainLm))}
 \end{Highlighting}
 \end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = mpg ~ . - acceleration, data = ourAutoTrain)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -8.7254 -2.0561 -0.3412  1.7122 12.9550 
+## 
+## Coefficients:
+##                       Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)         -1.941e+01  4.589e+00  -4.230 3.09e-05 ***
+## cylinders(5.5,8.01] -3.533e+00  7.469e-01  -4.730 3.43e-06 ***
+## displace             3.279e-02  6.749e-03   4.858 1.90e-06 ***
+## horsepower          -4.883e-02  1.184e-02  -4.124 4.80e-05 ***
+## weight              -5.824e-03  6.185e-04  -9.415  < 2e-16 ***
+## year                 7.849e-01  5.699e-02  13.771  < 2e-16 ***
+## origin2              1.794e+00  6.204e-01   2.892  0.00411 ** 
+## origin3              2.906e+00  5.943e-01   4.891 1.63e-06 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 3.233 on 305 degrees of freedom
+## Multiple R-squared:  0.8344, Adjusted R-squared:  0.8306 
+## F-statistic: 219.6 on 7 and 305 DF,  p-value: < 2.2e-16
+## 
+## [1] 8.931018
+## 
+##  Anderson-Darling normality test
+## 
+## data:  rstudent(trainLm)
+## A = 2.2684, p-value = 9.241e-06
+\end{verbatim}
 
 \begin{itemize}
 \tightlist
@@ -236,7 +286,7 @@
   cross-validation?
 \end{itemize}
 
-\subsection{\texorpdfstring{\href{mailto:1d@9}{\nolinkurl{1d@9}}}{1d@9}}\label{d9}
+\subsection{1d}\label{d}
 
 \begin{itemize}
 \tightlist
@@ -248,9 +298,33 @@
 \begin{Highlighting}[]
 \KeywordTok{library}\NormalTok{(caret)}
 \KeywordTok{library}\NormalTok{(leaps)}
-\CommentTok{# and so on}
+\NormalTok{predict.regsubsets=}\ControlFlowTok{function}\NormalTok{(object,newdata,id)\{}
+\NormalTok{  form=}\KeywordTok{as.formula}\NormalTok{(object}\OperatorTok{$}\NormalTok{call[[}\DecValTok{2}\NormalTok{]])}
+\NormalTok{  mat=}\KeywordTok{model.matrix}\NormalTok{(form,newdata)}
+\NormalTok{  coefi=}\KeywordTok{coef}\NormalTok{(object,}\DataTypeTok{id=}\NormalTok{id)}
+\NormalTok{  xvars=}\KeywordTok{names}\NormalTok{(coefi)}
+\NormalTok{  mat[,xvars]}\OperatorTok{%*%}\NormalTok{coefi}
+\NormalTok{\}}
+\NormalTok{k=}\DecValTok{10}
+\KeywordTok{set.seed}\NormalTok{(}\DecValTok{4268}\NormalTok{)}
+\NormalTok{folds=}\KeywordTok{sample}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\NormalTok{k,}\KeywordTok{nrow}\NormalTok{(ourAutoTrain),}\DataTypeTok{replace=}\OtherTok{TRUE}\NormalTok{)}
+\NormalTok{cv.errors=}\KeywordTok{matrix}\NormalTok{(}\OtherTok{NA}\NormalTok{,k,}\DecValTok{8}\NormalTok{,}\DataTypeTok{dimnames=}\KeywordTok{list}\NormalTok{(}\OtherTok{NULL}\NormalTok{,}\KeywordTok{paste}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\DecValTok{8}\NormalTok{)))}
+\ControlFlowTok{for}\NormalTok{ (j }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\NormalTok{k)\{}
+\NormalTok{  best.fit=}\KeywordTok{regsubsets}\NormalTok{(mpg}\OperatorTok{~}\NormalTok{.,}\DataTypeTok{data=}\NormalTok{ourAutoTrain[folds}\OperatorTok{!=}\NormalTok{j,])}
+  \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{8}\NormalTok{)\{}
+\NormalTok{    pred=}\KeywordTok{predict.regsubsets}\NormalTok{(best.fit,ourAutoTrain[folds}\OperatorTok{==}\NormalTok{j,],}\DataTypeTok{id=}\NormalTok{i)}
+\NormalTok{    cv.errors[j,i]=}\KeywordTok{mean}\NormalTok{((ourAutoTrain}\OperatorTok{$}\NormalTok{mpg[folds}\OperatorTok{==}\NormalTok{j]}\OperatorTok{-}\NormalTok{pred)}\OperatorTok{^}\DecValTok{2}\NormalTok{)}
+\NormalTok{  \}}
+\NormalTok{\}}
+\NormalTok{mean.cv.errors=}\KeywordTok{apply}\NormalTok{(cv.errors,}\DecValTok{2}\NormalTok{,mean)}
+\KeywordTok{which.min}\NormalTok{(mean.cv.errors)}
 \end{Highlighting}
 \end{Shaded}
+
+\begin{verbatim}
+## 7 
+## 7
+\end{verbatim}
 
 \begin{itemize}
 \tightlist

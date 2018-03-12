@@ -44,11 +44,16 @@ coef(res,id=which.min(sumres$bic))
 ##1b)
 
 * Q3: As explained in Q2, $RSS$ is calculated for all models, and for each model complexity, we choose the model with the lowest $RSS$ as our best model. The `regsubsets`-function in R performs the actual calculations, and in the summary we can see which predictors corresponds to the lowest $RSS$ for each model complexity. We see from this summary, which is printed in the task, that the best model with two predictors use the "weight" and "year" columns.
-* Q4: Now assuming we have the best model for each model complexity, we still want to choose which model complexity to use. As discussed in Q2, we would have the smallest $RSS$ for the highest possible model complexity in the training set, but since we want to avoid overfitting, we add penalties to more complex models. Therefore, for each model complexity, we add the penalties according to the $BIC$-criterion, and then choose the model with the lowest value as our best method. The $regsubsets$-function in R also does the calculations for the penalties, using $BIC$-criterion in addition to other penalty-adding methods. Thus we can from the `regsubsets`-function also retrieve the $BIC$-values for each model complexity, and choose the lowest one as our model. F
+* Q4: Now assuming we have the best model for each model complexity, we still want to choose which model complexity to use. As discussed in Q2, we would have the smallest $RSS$ for the highest possible model complexity in the training set, but since we want to avoid overfitting, we add penalties to more complex models. Therefore, for each model complexity, we add the penalties according to the $BIC$-criterion, and then choose the model with the lowest value as our best method. The $regsubsets$-function in R also does the calculations for the penalties, using $BIC$-criterion in addition to other penalty-adding methods. Thus we can from the `regsubsets`-function also retrieve the $BIC$-values for each model complexity, and choose the lowest one as our model. The figure above, which is the result of plotting the `regsubsets`-data also contains the necessary information for choosing the best model. On the $y$ scale, we see $BIC$-values for the models of different complexity, and on the $x$-scale we see which predictors are contained in the best model of this complexity, as a black box. We choose the model with the lowest $BIC$-value, which we see has $BIC\sim -520$, and contains seven predictors, all but acceleration. Hence, this is our best model according to the best subset method using $BIC$-criterion on the training data. From the prints in the task we see th more exact $BIC=-516.9417$, which was rounded off to -520. The following R-code fits this model to the training data. 
 Choose model and evaluate.
 
 ```{r, eval=TRUE,echo=TRUE}
-# R code to fit your final model.
+library(nortest)
+trainLm=lm(mpg~. -acceleration, data=ourAutoTrain)
+summary(trainLm)
+yhat=predict(trainLm,ourAutoTest)
+mean((ourAutoTest$mpg-yhat)^2)
+ad.test(rstudent(trainLm))
 ```
 
 * Q5: Use this model fit to predict new values for `ourAutoTest` and report the MSE. 
@@ -59,24 +64,43 @@ Choose model and evaluate.
 * Q6. Explain how $k$-fold cross-validation is performed. 
 * Q7. Why may $k$-fold cross-validation be preferred to leave-one-out cross-validation? 
 
-##1d@9
+##1d
 
-* Q8. R-code for $10$-fold CV.
-
+* Q8. The R-code for performing 10-fold cross validation is below. 
 ```{r,eval=TRUE,echo=TRUE,results="hold"}
 library(caret)
 library(leaps)
-# and so on
+predict.regsubsets=function(object,newdata,id){
+  form=as.formula(object$call[[2]])
+  mat=model.matrix(form,newdata)
+  coefi=coef(object,id=id)
+  xvars=names(coefi)
+  mat[,xvars]%*%coefi
+}
+k=10
+set.seed(4268)
+folds=sample(1:k,nrow(ourAutoTrain),replace=TRUE)
+cv.errors=matrix(NA,k,8,dimnames=list(NULL,paste(1:8)))
+for (j in 1:k){
+  best.fit=regsubsets(mpg~.,data=ourAutoTrain[folds!=j,])
+  for (i in 1:8){
+    pred=predict.regsubsets(best.fit,ourAutoTrain[folds==j,],id=i)
+    cv.errors[j,i]=mean((ourAutoTrain$mpg[folds==j]-pred)^2)
+  }
+}
+mean.cv.errors=apply(cv.errors,2,mean)
+mean.cv.errors
+which.min(mean.cv.errors)
 ```
 
 
-* Q9. What is the optimal model complexity (number of parameters) in your regression?
+* Q9. We see from the output of the code the $MSE$ for the different complexities, and we also see we get the lowest $MSE$ when using seven predictors. Hence, we want to use the same model complexity as we did for the $BIC$-criterion. 
 
 ```{r,echo=TRUE, eval=TRUE}
 # MSE on test set
 ```
 
-* Q10. Evaluate best model (or refer to Q4 and Q5).
+* Q10. Now that we established which model complexity we want to use, we would like to fit this on our entire training set, to get the best model possible. We would therefore use the `regsubsets`-function on the training set, and choose the model using seven predictors. We do however note that this will give us the exact same model as we did for the $BIC$-criterion. Our comments on the model fit for the training set, and the $MSE$ for the training set, is therefore identical to our results in Q4. Also, our predicted new values for the test set, and the MSE for the test set is identival to our results in Q5. We therefore refer to Q4 and Q5 in this task. 
 
 ##2a) Explain figures
 
