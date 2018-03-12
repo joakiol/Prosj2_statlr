@@ -22,3 +22,9 @@ lambda=c(seq(from=5,to=0.1,length.out=150),0.01,0.0001) #Create a set of tuning 
 cv.out=cv.glmnet(x,y,alpha=1,nfolds=10,lambda=lambda, standardize=TRUE) #alpha=1 gives lasso, alpha=0 gives ridge
 
 plot(cv.out)
+
+cv.out$lambda.min
+cv.out$lambda.1se
+
+coef(cv.out,s="lambda.1se")
+predict(cv.out, newx =matrix(c(0,150,100,3000,10,82,1,0),nrow=1), s = "lambda.1se")
