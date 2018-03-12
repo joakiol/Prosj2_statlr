@@ -219,8 +219,20 @@
   Hence, this is our best model according to the best subset method
   using \(BIC\)-criterion on the training data. From the prints in the
   task we see th more exact \(BIC=-516.9417\), which was rounded off to
-  -520. The following R-code fits this model to the training data.
-  Choose model and evaluate.
+  -520. The following R-code fits this model to the training data, by
+  using the \texttt{lm}-function. The summary output gives us
+  information about how well the model fit. We see that all of the
+  \(t\)-values are fairly high, and the \(p\)-values for all but one are
+  within the 0.001-significance level, while the last one is within the
+  0.01 significance level. We can therefore with a very high certainty
+  throw away the zero hypothesis without making a mistake. We also see
+  R-squared-values relatively close to 1, which indicates a good model
+  fit. Also we have \(RSS=RSE^2(n-k-1)\), so that
+  \[MSE=\frac{RSS}{n}=\frac{RSE^2(n-k-1)}{n}=\frac{3.233^2\cdot 305}{313}=10.185.\]
+  We have also performed an Anderson-Darling test for Normality. The
+  \(p\)-value for this test is \(9.241\cdot 10^-6\), which is very
+  small, and indicates that our data does not have normal distributed
+  errors. ???
 \end{itemize}
 
 \begin{Shaded}
@@ -228,9 +240,9 @@
 \KeywordTok{library}\NormalTok{(nortest)}
 \NormalTok{trainLm=}\KeywordTok{lm}\NormalTok{(mpg}\OperatorTok{~}\NormalTok{. }\OperatorTok{-}\NormalTok{acceleration, }\DataTypeTok{data=}\NormalTok{ourAutoTrain)}
 \KeywordTok{summary}\NormalTok{(trainLm)}
+\KeywordTok{ad.test}\NormalTok{(}\KeywordTok{rstudent}\NormalTok{(trainLm))}
 \NormalTok{yhat=}\KeywordTok{predict}\NormalTok{(trainLm,ourAutoTest)}
 \KeywordTok{mean}\NormalTok{((ourAutoTest}\OperatorTok{$}\NormalTok{mpg}\OperatorTok{-}\NormalTok{yhat)}\OperatorTok{^}\DecValTok{2}\NormalTok{)}
-\KeywordTok{ad.test}\NormalTok{(}\KeywordTok{rstudent}\NormalTok{(trainLm))}
 \end{Highlighting}
 \end{Shaded}
 
@@ -260,19 +272,23 @@
 ## Multiple R-squared:  0.8344, Adjusted R-squared:  0.8306 
 ## F-statistic: 219.6 on 7 and 305 DF,  p-value: < 2.2e-16
 ## 
-## [1] 8.931018
 ## 
 ##  Anderson-Darling normality test
 ## 
 ## data:  rstudent(trainLm)
 ## A = 2.2684, p-value = 9.241e-06
+## 
+## [1] 8.931018
 \end{verbatim}
 
 \begin{itemize}
 \tightlist
 \item
-  Q5: Use this model fit to predict new values for \texttt{ourAutoTest}
-  and report the MSE.
+  Q5: The code above also predicts new values for the test set, and
+  calculates the test-\(MSE\). Here, we got \(MSE=8.931\), which
+  actually is smaller than the training \(MSE\), indicating that we
+  indeed have managed to avoid overfitting, and made a model which
+  predicts new values pretty well.
 \end{itemize}
 
 \subsection{1c)}\label{c}
@@ -280,7 +296,12 @@
 \begin{itemize}
 \tightlist
 \item
-  Q6. Explain how \(k\)-fold cross-validation is performed.
+  Q6. K-fold cross-validation involves dividing the data into \(k\)
+  folds, \(C_1, C_2, \dots, C_k\). We then want to divide the data into
+  a training and test set, and we choose one of the \(k\) parts as the
+  test set, while we let the rest be training data. After fitting the
+  model, we calculate \(MSE\) for the specific test folder, as
+  \[MSE_j=\frac{a}{n_k}\sum_{i \in C_j}(y_i-\hat y_i)^2\]
 \item
   Q7. Why may \(k\)-fold cross-validation be preferred to leave-one-out
   cross-validation?
@@ -291,7 +312,7 @@
 \begin{itemize}
 \tightlist
 \item
-  Q8. R-code for \(10\)-fold CV.
+  Q8. The R-code for performing 10-fold cross validation is below.
 \end{itemize}
 
 \begin{Shaded}
@@ -317,11 +338,14 @@
 \NormalTok{  \}}
 \NormalTok{\}}
 \NormalTok{mean.cv.errors=}\KeywordTok{apply}\NormalTok{(cv.errors,}\DecValTok{2}\NormalTok{,mean)}
+\NormalTok{mean.cv.errors}
 \KeywordTok{which.min}\NormalTok{(mean.cv.errors)}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{verbatim}
+##        1        2        3        4        5        6        7        8 
+## 20.04605 11.98844 11.92601 11.29254 11.71515 10.72818 10.56209 10.61032 
 ## 7 
 ## 7
 \end{verbatim}
@@ -329,8 +353,10 @@
 \begin{itemize}
 \tightlist
 \item
-  Q9. What is the optimal model complexity (number of parameters) in
-  your regression?
+  Q9. We see from the output of the code the \(MSE\) for the different
+  complexities, and we also see we get the lowest \(MSE\) when using
+  seven predictors. Hence, we want to use the same model complexity as
+  we did for the \(BIC\)-criterion.
 \end{itemize}
 
 \begin{Shaded}
@@ -342,7 +368,16 @@
 \begin{itemize}
 \tightlist
 \item
-  Q10. Evaluate best model (or refer to Q4 and Q5).
+  Q10. Now that we established which model complexity we want to use, we
+  would like to fit this on our entire training set, to get the best
+  model possible. We would therefore use the
+  \texttt{regsubsets}-function on the training set, and choose the model
+  using seven predictors. We do however note that this will give us the
+  exact same model as we did for the \(BIC\)-criterion. Our comments on
+  the model fit for the training set, and the \(MSE\) for the training
+  set, is therefore identical to our results in Q4. Also, our predicted
+  new values for the test set, and the MSE for the test set is identival
+  to our results in Q5. We therefore refer to Q4 and Q5 in this task.
 \end{itemize}
 
 \subsection{2a) Explain figures}\label{a-explain-figures}
