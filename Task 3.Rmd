@@ -1,0 +1,47 @@
+---
+title: "Task3"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r data, echo=FALSE}
+library(ISLR)
+library(leaps)
+library(glmnet)
+
+ourAuto=data.frame("mpg"=Auto$mpg,"cylinders"=factor(cut(Auto$cylinders,2)),
+                   "displace"=Auto$displacement,"horsepower"=Auto$horsepower,
+                   "weight"=Auto$weight,"acceleration"=Auto$acceleration, 
+                   "year"=Auto$year,"origin"=as.factor(Auto$origin))
+colnames(ourAuto)
+ntot=dim(ourAuto)[1]
+ntot
+set.seed(4268)
+testids=sort(sample(1:ntot,ceiling(0.2*ntot),replace=FALSE))
+ourAutoTrain=ourAuto[-testids,]
+ourAutoTest=ourAuto[testids,]
+
+```
+
+```{r Task3, echo=TRUE, eval=TRUE}
+library(gam)
+gamobject = gam(mpg ~ bs(displace, knots  = 290) + poly(horsepower, 2)  + weight + s(acceleration, 3) + factor(origin),data=ourAutoTrain)
+par(mfrow=c(2,3))
+plot(gamobject,se=TRUE,col="blue")
+```
+
+* Q20: A basis for the cubic spline (displace) will be a combination of a step function at the knot and polynomials of degree, will be $X, X^2, X^3, (X-290)^3_+$.
+
+```{r, echo = F}
+M = 4
+cp = c(290)
+l = c(0,500)
+par(mfrow = c(2,2), mar = c(2,2,2,2))
+s=sapply(1:(M-1), function(y) curve(x^y, l[1], l[2], yaxt = "n",
+ ylab = "", xlab = "", main = bquote(b[.(y)](x) == x^.(y))))
+s=sapply(1:length(cp), function(y) curve(pmax(0,x-cp[y])^3, l[1], l[2], yaxt = "n",
+ ylab = "", xlab = "displacement", main = bquote(b[.(y+M-1)](x) == (x-.(cp[y]))["+"]^.(M-1))))
+```
