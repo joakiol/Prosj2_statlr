@@ -13,11 +13,12 @@ knitr::opts_chunk$set(echo = TRUE,results="hold",message = FALSE,warning=FALSE)
 ```
 ##1a)
   
-* Q1: We have $d$ possible predictors. First of all, we can chose how many of these predictors we want to use. We have the choice to use $k=0,1,2,\dots,d$ predictors in our model. If we use $k=0$ predictors, we don't really have a linear regression model, instead we will get a model that predicts new samples as the average of all previous samples. Even though this is not a linear regression model, we want to investigate whether this gives a better result than using a linear regression model would. That would imply that there is no linear connection between the data from our sample. Let us now focus on the choices of $k$ that results in linear regression models. If we choose to use $k=1$ predictor, we again have a choice in which of the $d$ possible predictors we want to use. Obviuosly there are $d$ possible choices for $k=1$, but if we want to be more systematic we can say that we choose $k$ different predictors from $d$ possible ones, and we can not choose the same twice. Hence, the number of possible combinations using $k$ predictors is given by the standard nCr-formula $\binom{d}{k}$. Now we have our $d$ different choices of $k$, which all gives different linear regression models. In total, the number of models is
-$$\binom{d}{1}+\binom{d}{2}+\dots+\binom{d}{d}.$$. The binomial theorem states that 
+* Q1: We have $d$ possible predictors. For each predictor, we can either use it, or we can not use it. Hence we have two unique possibilities in $d$ variables, resulting in a total of $2^d$ possible combinations. Thus, the number of different regression models is given by $2^d$. Another way to see this is by investigating each model complexity independently. Say we use $k$ predictors in our model. We then choose $k$ different predictors from $d$ possible ones, and we can not choose the same twice. Hence, the number of possible combinations using $k$ predictors is given by the standard nCr-formula $\binom{d}{k}$. Now we have our $d$ different choices of $k$, which all gives different linear regression models. In total, the number of models is
+$$\binom{d}{0}+\binom{d}{1}+\dots+\binom{d}{d}.$$ 
+The binomial theorem states that 
 $$(1+x)^n=\sum_{k=0}^n \binom{n}{k} x^k.$$. By setting $x=1$, we see that the number of different linear regression models is given by 
-$$\sum_{k=1}^d \binom{d}{k}=2^d -1.$$ 
-* Q2: The following algorithm illustrates how the best subset method finds the best model amongst the $2^d-1$ possible ones: Denote first by $\mathcal{M}_0$ the model using no predictors. This model simply predicts the sample mean for new observations. Next, for $k=1,2,\dots,d$, fit all $\binom{d}{k}$ models, by solving the equation $\hat{\boldsymbol \beta} =(\boldsymbol X^T \boldsymbol X)^{-1} \boldsymbol X^T \boldsymbol Y$, where $\boldsymbol{X}$ and $\boldsymbol{Y}$ only contains the predictors for one specific model. Calculate the RSS, and choose the model with the lowest RSS amongst the $\binom{d}{k}$ models, to be considered later. Now after the for-loop, we have $d+1$ possible models to consider. Calculate $BIC=\frac{1}{n}(RSS+log(d)k\hat \sigma^2)$ for each, and choose the model with the lowest $BIC$. This is the best model by the best subset method, using $BIC$-criterion. $R^2$ is given by $1-RSS/TSS$. In this expression, we do not care how many predictors are being used. This is a problem, because training error is a poor estimate for test error, since it may cause overfitting. A possible solution to this is to add penalties, depending on how many predictors we use. If we were to use $R^2$ instead of $BIC$ to choose the best model, our best model would surely contain all $d$ predictors since over-fitting would make our model fit the training data better. This is unwanted as we would rather have a model that best fit test data, which $BIC$ better simulates. 
+$$\sum_{k=1}^d \binom{d}{k}=2^d.$$ 
+* Q2: The following algorithm illustrates how the best subset method finds the best model amongst the $2^d$ possible ones: Denote first by $\mathcal{M}_0$ the model using no predictors. This model simply predicts the sample mean for new observations. Next, for $k=1,2,\dots,d$, fit all $\binom{d}{k}$ models, by solving the equation $\hat{\boldsymbol \beta} =(\boldsymbol X^T \boldsymbol X)^{-1} \boldsymbol X^T \boldsymbol Y$, where $\boldsymbol{X}$ and $\boldsymbol{Y}$ only contains the predictors for one specific model. Calculate the RSS, and choose the model with the lowest RSS amongst the $\binom{d}{k}$ models, to be considered later. Now after the for-loop, we have $d+1$ possible models to consider. Calculate $BIC=\frac{1}{n}(RSS+log(n)k\hat \sigma^2)$ for each, where $\hat \sigma^2$ is a unbiased estimator for the variance, and choose the model with the lowest $BIC$. This is the best model by the best subset method, using $BIC$-criterion. $R^2$ is given by $1-RSS/TSS$. In this expression, we do not care how many predictors are being used. This is a problem, because training error is a poor estimate for test error, since it may cause overfitting. A possible solution to this is to add penalties, depending on how many predictors we use. If we were to use $R^2$ instead of $BIC$ to choose the best model, our best model would surely contain all $d$ predictors since over-fitting would make our model fit the training data better. This is unwanted as we would rather have a model that best fit test data, which $BIC$ better simulates. 
 ```{r,echo=FALSE,results="hide"}
 library(ISLR)
 ourAuto=data.frame("mpg"=Auto$mpg,"cylinders"=factor(cut(Auto$cylinders,2)),
@@ -43,16 +44,20 @@ coef(res,id=which.min(sumres$bic))
 
 ##1b)
 
-* Q3: As explained in Q2, $RSS$ is calculated for all models, and for each model complexity, we choose the model with the lowest $RSS$ as our best model. The `regsubsets`-function in R performs the actual calculations, and in the summary we can see which predictors corresponds to the lowest $RSS$ for each model complexity. We see from this summary, which is printed in the task, that the best model with two predictors use the "weight" and "year" columns.
-* Q4: Now assuming we have the best model for each model complexity, we still want to choose which model complexity to use. As discussed in Q2, we would have the smallest $RSS$ for the highest possible model complexity in the training set, but since we want to avoid overfitting, we add penalties to more complex models. Therefore, for each model complexity, we add the penalties according to the $BIC$-criterion, and then choose the model with the lowest value as our best method. The $regsubsets$-function in R also does the calculations for the penalties, using $BIC$-criterion in addition to other penalty-adding methods. Thus we can from the `regsubsets`-function also retrieve the $BIC$-values for each model complexity, and choose the lowest one as our model. The figure above, which is the result of plotting the `regsubsets`-data also contains the necessary information for choosing the best model. On the $y$ scale, we see $BIC$-values for the models of different complexity, and on the $x$-scale we see which predictors are contained in the best model of this complexity, as a black box. We choose the model with the lowest $BIC$-value, which we see has $BIC\sim -520$, and contains seven predictors, all but acceleration. Hence, this is our best model according to the best subset method using $BIC$-criterion on the training data. From the prints in the task we see th more exact $BIC=-516.9417$, which was rounded off to -520. The following R-code fits this model to the training data, by using the `lm`-function. The summary output gives us information about how well the model fit. We see that all of the $t$-values are fairly high, and the $p$-values for all but one are within the 0.001-significance level, while the last one is within the 0.01 significance level. We can therefore with a very high certainty throw away the zero hypothesis without making a mistake. We also see R-squared-values relatively close to 1, which indicates a good model fit. Also we have $RSS=RSE^2(n-k-1)$, so that 
-$$MSE=\frac{RSS}{n}=\frac{RSE^2(n-k-1)}{n}=\frac{3.233^2\cdot 305}{313}=10.185.$$ We have also performed an Anderson-Darling test for Normality. The $p$-value for this test is $9.241\cdot 10^-6$, which is very small, and indicates that our data does not have normal distributed errors. ???
+* Q3: As explained in Q2, $RSS$ is calculated for all models, and for each model complexity, we choose the model with the lowest $RSS$ as our best model. The `regsubsets`-function in R performs the actual calculations, and in the summary we can see which predictors corresponds to the lowest $RSS$ for each model complexity. We see from this summary, which is printed in the task, that the best model with two predictors uses the "weight" and "year" columns, in addition to the intercept.
+* Q4: Now assuming we have the best model for each model complexity, we still want to choose which model complexity to use. As discussed in Q2, we would have the smallest $RSS$ for the highest possible model complexity in the training set, but since we want to avoid overfitting, we add penalties to more complex models. Therefore, for each model complexity, we add the penalties according to the $BIC$-criterion, and then choose the model with the lowest value as our best method. The $regsubsets$-function in R also does the calculations for the penalties, using $BIC$-criterion in addition to other penalty-adding methods. Thus we can from the `regsubsets`-function also retrieve the $BIC$-values for each model complexity, and choose the lowest one as our model. The figure above, which is the result of plotting the `regsubsets`-data also contains the necessary information for choosing the best model. On the $y$ scale, we see $BIC$-values for the models of different complexity, and on the $x$-scale we see which predictors are contained in the best model of this complexity, as a black box. We choose the model with the lowest $BIC$-value, which we see has $BIC\approx -520$, and contains seven predictors, all but acceleration. Hence, this is our best model according to the best subset method using $BIC$-criterion on the training data. From the prints in the task we see the more exact value $BIC=-516.9417$, which was rounded off to -520. The following R-code fits this model to the training data, by using the `lm`-function. The summary output gives us information about how well the model fit. We see that all of the $t$-values are fairly high, and the $p$-values for all but one are within the 0.001-significance level, while the last one is within the 0.01 significance level. It is therefore reasonable to assume there is a linear connection between miles per gallon and the variates. We also see R-squared-values relatively close to 1, which indicates a good model fit. We have $RSS=RSE^2(n-k-1)$, so that 
+$$MSE=\frac{RSS}{n}=\frac{RSE^2(n-k-1)}{n}=\frac{3.233^2\cdot 305}{313}=10.185.$$ We have also performed an Anderson-Darling test for Normality. The $p$-value for this test is $9.241\cdot 10^{-6}$, which is very small, and indicates that our data does not have normal distributed errors. ???
 ```{r, eval=TRUE,echo=TRUE}
 library(nortest)
 trainLm=lm(mpg~. -acceleration, data=ourAutoTrain)
 summary(trainLm)
 ad.test(rstudent(trainLm))
-yhat=predict(trainLm,ourAutoTest)
-mean((ourAutoTest$mpg-yhat)^2)
+yhat_train=predict(trainLm,ourAutoTrain)
+yhat_test=predict(trainLm,ourAutoTest)
+MSE_train=mean((ourAutoTrain$mpg-yhat_train)^2)
+MSE_train
+MSE_test=mean((ourAutoTest$mpg-yhat_test)^2)
+MSE_test
 
 ```
 
@@ -62,9 +67,9 @@ mean((ourAutoTest$mpg-yhat)^2)
 ##1c)
 
 * Q6. K-fold cross-validation involves dividing the data into $k$ folds, $C_1, C_2, \dots, C_k$. We then want to divide the data into a training and test set, and we choose one of the $k$ parts as the test set, while we let the rest be training data. After fitting the model, we calculate $MSE$ for the specific test folder, as 
-$$MSE_j=\frac{a}{n_k}\sum_{i \in C_j}(y_i-\hat y_i)^2,$$
+$$MSE_j=\frac{1}{n_k}\sum_{i \in C_j}(y_i-\hat y_i)^2,$$
 where $n_k=n/k$. Furthermore, we want to use all the folds as testing data in turn, while we let the $k-1$ remaining folds be training data to fit different models. Thus, we calculate $MSE_1, MSE_2,\dots, MSE_k$, and finally we give the cross-validation a value as $$CV_k=\frac{n_k}{n}\sum_{j=1}^k MSE_j$$. In our regression setting, we want to do the K-fold cross-validation for all the different complexities, to examine which complexity gives the lowest value $CV_k$. Finally when we have decided which model complexity we want to use, we would fit the linear regression with 
-* Q7. Why may $k$-fold cross-validation be preferred to leave-one-out cross-validation? 
+* Q7. LOOCV suffers from quite high variance, since the training sets only differ with one observation. This makes the training sets have a very high correlation, which can make the average have a high variance. By using k-fold cross-validation instead we can lower the variance. Note however that this is at the cost of a higher bias, since the dataset is smaller by a factor of $(k-1)/k$. k-fold cross-valudation with $k=5$ or $k=10$ is often seen as a compromise between the high variance and the high bias. In addition, it is more expensive to implement LOOVC, since you have to fit $n$ data sets, instead of $k$, resulting in more calculations. It is thus less work using k-fold cross-validation. 
 
 ##1d
 
@@ -102,7 +107,7 @@ which.min(mean.cv.errors)
 # MSE on test set
 ```
 
-* Q10. Now that we established which model complexity we want to use, we would like to fit this on our entire training set, to get the best model possible. We would therefore use the `regsubsets`-function on the training set, and choose the model using seven predictors. We do however note that this will give us the exact same model as we did for the $BIC$-criterion. Our comments on the model fit for the training set, and the $MSE$ for the training set, is therefore identical to our results in Q4. Also, our predicted new values for the test set, and the MSE for the test set is identival to our results in Q5. We therefore refer to Q4 and Q5 in this task. 
+* Q10. Now that we have established which model complexity we want to use, we would like to fit this on our entire training set, to get the best model possible. We would therefore use the `regsubsets`-function on the training set, and choose the model using seven predictors. We do however note that this will give us the exact same model as we did for the $BIC$-criterion. Our comments on the model fit for the training set, and the $MSE$ for the training set, is therefore identical to our results in Q4. Also, our predicted new values for the test set, and the MSE for the test set is identical to our results in Q5. We therefore refer to Q4 and Q5 in this task. 
 
 ##2a) Explain figures
 
@@ -156,7 +161,17 @@ newx=matrix(c(0,150,100,3000,10,82,0,0),nrow=1)
 
 ```{r,echo=TRUE, eval=TRUE}
 library(gam)
-# write R code
+gamobject = gam(mpg ~ bs(displace, knots  = 290) + poly(horsepower, 2)  + weight + s(acceleration, 3) + factor(origin),data=ourAutoTrain)
+par(mfrow=c(2,3))
+plot(gamobject,se=TRUE,col="blue")
+M = 4
+cp = c(290)
+l = c(0,500)
+par(mfrow = c(2,2), mar = c(2,2,2,2))
+s=sapply(1:(M-1), function(y) curve(x^y, l[1], l[2], yaxt = "n",
+ ylab = "", xlab = "", main = bquote(b[.(y)](x) == x^.(y))))
+s=sapply(1:length(cp), function(y) curve(pmax(0,x-cp[y])^3, l[1], l[2], yaxt = "n",
+ ylab = "", xlab = "displacement", main = bquote(b[.(y+M-1)](x) == (x-.(cp[y]))["+"]^.(M-1))))
 ```
 
-* Q20: The cubic spline basis.
+* Q20: A basis for the cubic spline (displace) will be a combination of a step function at the knot and polynomials of degree, will be $X, X^2, X^3, (X-290)^3_+$.

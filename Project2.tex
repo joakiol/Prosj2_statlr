@@ -131,7 +131,6 @@
 \subsection{1a)}\label{a}
 
 \begin{itemize}
-\tightlist
 \item
   Q1: We have \(d\) possible predictors. For each predictor, we can
   either use it, or we can not use it. Hence we have two unique
@@ -146,7 +145,7 @@
   of \(k\), which all gives different linear regression models. In
   total, the number of models is
   \[\binom{d}{0}+\binom{d}{1}+\dots+\binom{d}{d}.\] The binomial theorem
-  states that \[(1+x)^n=\sum_{k=0}^n \binom{n}{k} x^k.\]. By setting
+  states that \[(1+x)^n=\sum_{k=0}^n \binom{n}{k} x^k.\] By setting
   \(x=1\), we see that the number of different linear regression models
   is given by \[\sum_{k=1}^d \binom{d}{k}=2^d.\]
 \item
@@ -162,7 +161,7 @@
   model with the lowest RSS amongst the \(\binom{d}{k}\) models, to be
   considered later. Now after the for-loop, we have \(d+1\) possible
   models to consider. Calculate
-  \(BIC=\frac{1}{n}(RSS+log(n)k\hat \sigma^2)\) for each, where
+  \(BIC=\frac{1}{n}(RSS+\mathrm{log}(n)k\hat \sigma^2)\) for each, where
   \(\hat \sigma^2\) is a unbiased estimator for the variance, and choose
   the model with the lowest \(BIC\). This is the best model by the best
   subset method, using \(BIC\)-criterion. \(R^2\) is given by
@@ -175,13 +174,12 @@
   since over-fitting would make our model fit the training data better.
   This is unwanted as we would rather have a model that best fit test
   data, which \(BIC\) better simulates.
-  \includegraphics{1_files/figure-latex/unnamed-chunk-1-1.pdf}
+  \includegraphics{Project2_files/figure-latex/unnamed-chunk-1-1.pdf}
 \end{itemize}
 
 \subsection{1b)}\label{b}
 
 \begin{itemize}
-\tightlist
 \item
   Q3: As explained in Q2, \(RSS\) is calculated for all models, and for
   each model complexity, we choose the model with the lowest \(RSS\) as
@@ -194,8 +192,8 @@
 \item
   Q4: Now assuming we have the best model for each model complexity, we
   still want to choose which model complexity to use. As discussed in
-  Q2, we would have the smallest \(RSS\) for the highest possible model
-  complexity in the training set, but since we want to avoid
+  Q2, we expect to have the smallest \(RSS\) for the highest possible
+  model complexity in the training set, but since we want to avoid
   overfitting, we add penalties to more complex models. Therefore, for
   each model complexity, we add the penalties according to the
   \(BIC\)-criterion, and then choose the model with the lowest value as
@@ -221,13 +219,17 @@
   but one are within the 0.001-significance level, while the last one is
   within the 0.01 significance level. It is therefore reasonable to
   assume there is a linear connection between miles per gallon and the
-  variates. We also see R-squared-values relatively close to 1, which
-  indicates a good model fit. We have \(RSS=RSE^2(n-k-1)\), so that
+  other variates. We also see R-squared-values relatively close to 1,
+  which indicates a good model fit. We have \(RSS=RSE^2(n-k-1)\), so
+  that
   \[MSE=\frac{RSS}{n}=\frac{RSE^2(n-k-1)}{n}=\frac{3.233^2\cdot 305}{313}=10.185.\]
+  The train-\(MSE\) is also calculated in the code below, giving the
+  result 10.184, which is different probably because of roundoff-error.
   We have also performed an Anderson-Darling test for Normality. The
   \(p\)-value for this test is \(9.241\cdot 10^{-6}\), which is very
   small, and indicates that our data does not have normal distributed
-  errors. ???
+  errors. This puts some doubt in our originl assumption that our data
+  follows a linear relationship with normal distributed noise.
 \end{itemize}
 
 \begin{Shaded}
@@ -294,7 +296,6 @@
 \subsection{1c)}\label{c}
 
 \begin{itemize}
-\tightlist
 \item
   Q6. K-fold cross-validation involves dividing the data into \(k\)
   folds, \(C_1, C_2, \dots, C_k\). We then want to divide the data into
@@ -306,23 +307,23 @@
   in turn, while we let the \(k-1\) remaining folds be training data to
   fit different models. Thus, we calculate
   \(MSE_1, MSE_2,\dots, MSE_k\), and finally we give the
-  cross-validation a value as \[CV_k=\frac{n_k}{n}\sum_{j=1}^k MSE_j\].
-  In our regression setting, we want to do the K-fold cross-validation
-  for all the different complexities, to examine which complexity gives
-  the lowest value \(CV_k\). Finally when we have decided which model
-  complexity we want to use, we would fit the linear regression with
+  cross-validation a value as \[CV_k=\frac{n_k}{n}\sum_{j=1}^k MSE_j.\]
+  In our regression setting, when doing this for different complexities,
+  we want to find which complexity gives the lowest \(CV_k\), and we
+  choose this as our best model.
 \item
   Q7. LOOCV suffers from quite high variance, since the training sets
   only differ with one observation. This makes the training sets have a
-  very high correlation, which can make the average have a high
-  variance. By using k-fold cross-validation instead we can lower the
-  variance. Note however that this is at the cost of a higher bias,
-  since the dataset is smaller by a factor of \((k-1)/k\). k-fold
-  cross-valudation with \(k=5\) or \(k=10\) is often seen as a
-  compromise between the high variance and the high bias. In addition,
-  it is more expensive to implement LOOVC, since you have to fit \(n\)
-  data sets, instead of \(k\), resulting in more calculations. It is
-  thus less work using k-fold cross-validation.
+  very high correlation, and we choose our model based on an average of
+  these corrolated models. This, in the end, can give a high variance.
+  By using k-fold cross-validation instead we can lower the variance.
+  Note however that this is at the cost of a higher bias, since the
+  dataset used for fitting the models are smaller by a factor of
+  \((k-1)/k\). k-fold cross-valudation with \(k=5\) or \(k=10\) is often
+  seen as a compromise between the high variance and the high bias. In
+  addition, it is more expensive to implement LOOVC, since you have to
+  fit \(n\) data sets, instead of \(k\), resulting in more calculations.
+  It is thus less work using k-fold cross-validation.
 \end{itemize}
 
 \subsection{1d}\label{d}
@@ -369,22 +370,11 @@
 \end{verbatim}
 
 \begin{itemize}
-\tightlist
 \item
   Q9. We see from the output of the code the \(MSE\) for the different
   complexities, and we also see we get the lowest \(MSE\) when using
   seven predictors. Hence, we want to use the same model complexity as
   we did for the \(BIC\)-criterion.
-\end{itemize}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{# MSE on test set}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{itemize}
-\tightlist
 \item
   Q10. Now that we have established which model complexity we want to
   use, we would like to fit this on our entire training set, to get the
@@ -394,72 +384,161 @@
   exact same model as we did for the \(BIC\)-criterion. Our comments on
   the model fit for the training set, and the \(MSE\) for the training
   set, is therefore identical to our results in Q4. Also, our predicted
-  new values for the test set, and the MSE for the test set is identical
-  to our results in Q5. We therefore refer to Q4 and Q5 in this task.
+  new values for the test set, and the MSE for the test set, is
+  identical to our results in Q5. We therefore refer to Q4 and Q5 in
+  this task.
 \end{itemize}
 
 \subsection{2a) Explain figures}\label{a-explain-figures}
 
 \begin{itemize}
-\tightlist
 \item
-  Q11: Which figure (1 or 2) corresponds to ridge and which figure
-  corresponds to lasso?
+  Q11. \(\lambda\) is a parameter which draws the estimated
+  coeffiecients towards zero in both ridge and lasso regression. For
+  very large \(\lambda\)'s, all the estimated coefficients are
+  essentially zero. However, in ridge regression, none of the
+  coefficients will be set exactly to zero. In comparison , the penalty
+  term in lasso regression may set some of the coefficient to be exactly
+  zero when \(\lambda\) is large enough. In Figure 1, we can see that
+  this is the case, while the coefficients in Figure 2 do not seem to be
+  exactly zero for any value of \(\lambda\) in the given interval. Thus,
+  Figure 1 corresponds to lasso regression while Figure 2 corresponds to
+  ridge regression.
 \item
-  Q12. Use the two figures and the above formulas to explain\ldots{}
+  Q12. As stated, we can see that the tuning parameter \(\lambda\) draws
+  the \(\beta\)'s towards zero as \(\lambda\) increases. In lasso
+  regression, all of the coefficients seem to become exactly zero, while
+  in ridge regression, the coefficients are drawn towards zero, but are
+  not exactly zero. When \(\lambda=0\), the penalty term in both ridge
+  and lasso regression will disappear, so the coefficients will just be
+  the same as with least squares estimation. At this value for
+  \(\lambda\), the bias is zero, but the variance may be high. As
+  \(\lambda\) increases, the variance will become lower as the
+  coefficients are shrinked and flexibility decreases. However, the bias
+  will increase at the same time. In both ridge and lasso regression,
+  when \(\lambda \rightarrow \infty\), we have the null model, which
+  means that all of the coefficient estimates except the intercept are
+  zero. Then the variance becomes low, but the bias becomes large. At
+  some point in between, the MSE will be at its lowest.
 \item
-  Q13. Can you use lasso and/or ridge regression to perform model
-  selection similar to what you did in Problem 1?
+  Q13. Ridge regression will include all \(p\) covariates, and thus can
+  not be used to perform model selection. However, lasso regression can
+  be used in the same way as best subset selection, as the variables are
+  forced to be exactly zero when \(\lambda\) is large. As the penalty
+  \(\lambda\) increases, as we see in Figure 1, lasso regression may
+  zero out some of the estimated coefficients and it thus performs a
+  variable selection. We can say that the coefficients going slowest to
+  zero represent the most important covariates. Here, both \texttt{year}
+  and \texttt{cylinders(5.5,8.01{]}} seem to be important variables,
+  similar to what we saw in Problem 1b. It is for some of the other
+  coefficients such as \texttt{weight} difficult to see exactly for
+  which value of \(\lambda\) they become zero, as they have small
+  values.
 \end{itemize}
 
-\includegraphics{1_files/figure-latex/unnamed-chunk-5-1.pdf}
+\includegraphics{Project2_files/figure-latex/unnamed-chunk-4-1.pdf}
 
 \subsection{\texorpdfstring{2b) Finding the optimal
 \(\lambda\)}{2b) Finding the optimal \textbackslash{}lambda}}\label{b-finding-the-optimal-lambda}
 
 \begin{itemize}
-\tightlist
 \item
-  Q14: Explain what the function \texttt{cv.glmnet} does.
+  Q14: The function cv.glmnet performs a k-fold cross-validation for a
+  sequence of \(\lambda\)'s, produces a plot and returns an object with
+  different ingredients.
 \item
-  Q15. Explain what we see in the above plot.
-\item
-  Q16: Finding the optimal lambda:
+  Q15. The plot shows the cross-validation curve, including the upper
+  and lower standard deviation curves along the sequence of
+  \(\lambda\)'s. The \(\lambda\) with the lowest cross-validated MSE in
+  the plot can be chosen as the optimal \(\lambda\):
 \end{itemize}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{# need some R code here}
+\NormalTok{cv.out}\OperatorTok{$}\NormalTok{lambda.min}
 \end{Highlighting}
 \end{Shaded}
 
-\subsection{3c) Prediction}\label{c-prediction}
+\begin{verbatim}
+## [1] 1e-04
+\end{verbatim}
+
+The \texttt{1se-rule}, is another way to choose which \(\lambda\) is
+optimal. In the object returned by \texttt{cv.glmnet}, one of the values
+is \texttt{lambda.1se}, which is the largest value of \(\lambda\) such
+that the error is within one standard error of the minimum.
 
 \begin{itemize}
 \tightlist
 \item
-  Q17: Fit model, coefficients,\ldots{}
+  Q16: By using the \texttt{1se-rule}, we get that the optimal
+  \(\lambda\) is
 \end{itemize}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{# fit the lasso}
+\NormalTok{cv.out}\OperatorTok{$}\NormalTok{lambda.1se}
 \end{Highlighting}
 \end{Shaded}
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{# 0 for cylinder, displace, horsepower, weight, acceleration, year, 0 for origin2 and 0 for origin3}
-\NormalTok{newx=}\KeywordTok{matrix}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{150}\NormalTok{,}\DecValTok{100}\NormalTok{,}\DecValTok{3000}\NormalTok{,}\DecValTok{10}\NormalTok{,}\DecValTok{82}\NormalTok{,}\DecValTok{0}\NormalTok{,}\DecValTok{0}\NormalTok{),}\DataTypeTok{nrow=}\DecValTok{1}\NormalTok{)}
-\CommentTok{# then do the prediction}
-\end{Highlighting}
-\end{Shaded}
+\begin{verbatim}
+## [1] 0.01
+\end{verbatim}
+
+\subsection{2c) Prediction}\label{c-prediction}
 
 \begin{itemize}
 \tightlist
 \item
-  Q18: Predicted value:
+  Q17: Using lasso regression with the optimal value of \(\lambda\)
+  according to the \texttt{1se-rule}, \(\lambda=0.01\), we can fit the
+  model. The coefficient estimates are
 \end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{coef}\NormalTok{(cv.out,}\DataTypeTok{s=}\StringTok{"lambda.1se"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 9 x 1 sparse Matrix of class "dgCMatrix"
+##                                 1
+## (Intercept)         -21.407540632
+## cylinders(5.5,8.01]  -3.374630096
+## displace              0.030954456
+## horsepower           -0.035558382
+## weight               -0.006071262
+## acceleration          0.122203782
+## year                  0.781813677
+## origin2               1.675613651
+## origin3               2.832358817
+\end{verbatim}
+
+Thus, we get the model fit
+\(\hat{y}=-21.408-3.375x_{cylinders}+0.031x_{displace}-0.036x_{horsepower}-0.006x_{weight}+0.122x_{acceleration}+0.782x_{year}+1.676x_{origin2}+2.832x_{origin3}\).
+
+\begin{itemize}
+\tightlist
+\item
+  Q18: Using this model with optimal \(\lambda\) chosen according to the
+  \texttt{1se-rule}, we can predict \texttt{mpg} for cars based on their
+  data. For a car with 4 cylinders, \texttt{displace=150},
+  \texttt{horsepower=100}, \texttt{weight=3000},
+  \texttt{acceleration=10}, \texttt{year=82} and which comes from
+  Europe, \texttt{mpg} is predicted as
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{predict}\NormalTok{(cv.out, }\DataTypeTok{newx =}\KeywordTok{matrix}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{150}\NormalTok{,}\DecValTok{100}\NormalTok{,}\DecValTok{3000}\NormalTok{,}\DecValTok{10}\NormalTok{,}\DecValTok{82}\NormalTok{,}\DecValTok{1}\NormalTok{,}\DecValTok{0}\NormalTok{),}\DataTypeTok{nrow=}\DecValTok{1}\NormalTok{), }\DataTypeTok{s =} \StringTok{"lambda.1se"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##             1
+## [1,] 28.47238
+\end{verbatim}
 
 \subsection{3a)}\label{a-1}
 
@@ -482,7 +561,7 @@
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{1_files/figure-latex/unnamed-chunk-9-1.pdf}
+\includegraphics{Project2_files/figure-latex/unnamed-chunk-9-1.pdf}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -493,7 +572,7 @@
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{1_files/figure-latex/unnamed-chunk-9-2.pdf}
+\includegraphics{Project2_files/figure-latex/unnamed-chunk-9-2.pdf}
 
 \begin{itemize}
 \tightlist
