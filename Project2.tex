@@ -145,7 +145,7 @@
   of \(k\), which all gives different linear regression models. In
   total, the number of models is
   \[\binom{d}{0}+\binom{d}{1}+\dots+\binom{d}{d}.\] The binomial theorem
-  states that \[(1+x)^n=\sum_{k=0}^n \binom{n}{k} x^k.\]. By setting
+  states that \[(1+x)^n=\sum_{k=0}^n \binom{n}{k} x^k.\] By setting
   \(x=1\), we see that the number of different linear regression models
   is given by \[\sum_{k=1}^d \binom{d}{k}=2^d.\]
 \item
@@ -161,7 +161,7 @@
   model with the lowest RSS amongst the \(\binom{d}{k}\) models, to be
   considered later. Now after the for-loop, we have \(d+1\) possible
   models to consider. Calculate
-  \(BIC=\frac{1}{n}(RSS+log(n)k\hat \sigma^2)\) for each, where
+  \(BIC=\frac{1}{n}(RSS+\mathrm{log}(n)k\hat \sigma^2)\) for each, where
   \(\hat \sigma^2\) is a unbiased estimator for the variance, and choose
   the model with the lowest \(BIC\). This is the best model by the best
   subset method, using \(BIC\)-criterion. \(R^2\) is given by
@@ -431,8 +431,9 @@
   zero represent the most important covariates. Here, both \texttt{year}
   and \texttt{cylinders(5.5,8.01{]}} seem to be important variables,
   similar to what we saw in Problem 1b. It is for some of the other
-  coefficients in this case however difficult to see exactly for which
-  value of \(\lambda\) they become zero, as they
+  coefficients such as \texttt{weight} difficult to see exactly for
+  which value of \(\lambda\) they become zero, as they have small
+  values.
 \end{itemize}
 
 \includegraphics{Project2_files/figure-latex/unnamed-chunk-4-1.pdf}
@@ -544,8 +545,7 @@ Thus, we get the model fit
 \begin{itemize}
 \tightlist
 \item
-  Q19: The folliwing code shows the fitting of the specified
-  \texttt{gam}:
+  Q19: Fitting the specified \texttt{gam}
 \end{itemize}
 
 \begin{Shaded}
