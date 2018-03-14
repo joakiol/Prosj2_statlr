@@ -64,7 +64,7 @@ MSE_test
 ##1c)
 
 * Q6. K-fold cross-validation involves dividing the data into $k$ folds, $C_1, C_2, \dots, C_k$. We then want to divide the data into a training and test set, and we choose one of the $k$ parts as the test set, while we let the rest be training data. After fitting the model, we calculate $MSE$ for the specific test folder, as 
-$$MSE_j=\frac{a}{n_k}\sum_{i \in C_j}(y_i-\hat y_i)^2,$$
+$$MSE_j=\frac{1}{n_k}\sum_{i \in C_j}(y_i-\hat y_i)^2,$$
 where $n_k=n/k$. Furthermore, we want to use all the folds as testing data in turn, while we let the $k-1$ remaining folds be training data to fit different models. Thus, we calculate $MSE_1, MSE_2,\dots, MSE_k$, and finally we give the cross-validation a value as $$CV_k=\frac{n_k}{n}\sum_{j=1}^k MSE_j$$. In our regression setting, we want to do the K-fold cross-validation for all the different complexities, to examine which complexity gives the lowest value $CV_k$. Finally when we have decided which model complexity we want to use, we would fit the linear regression with 
 * Q7. LOOCV suffers from quite high variance, since the training sets only differ with one observation. This makes the training sets have a very high correlation, which can make the average have a high variance. By using k-fold cross-validation instead we can lower the variance. Note however that this is at the cost of a higher bias, since the dataset is smaller by a factor of $(k-1)/k$. k-fold cross-valudation with $k=5$ or $k=10$ is often seen as a compromise between the high variance and the high bias. In addition, it is more expensive to implement LOOVC, since you have to fit $n$ data sets, instead of $k$, resulting in more calculations. It is thus less work using k-fold cross-validation. 
 
@@ -158,7 +158,17 @@ newx=matrix(c(0,150,100,3000,10,82,0,0),nrow=1)
 
 ```{r,echo=TRUE, eval=TRUE}
 library(gam)
-# write R code
+gamobject = gam(mpg ~ bs(displace, knots  = 290) + poly(horsepower, 2)  + weight + s(acceleration, 3) + factor(origin),data=ourAutoTrain)
+par(mfrow=c(2,3))
+plot(gamobject,se=TRUE,col="blue")
+M = 4
+cp = c(290)
+l = c(0,500)
+par(mfrow = c(2,2), mar = c(2,2,2,2))
+s=sapply(1:(M-1), function(y) curve(x^y, l[1], l[2], yaxt = "n",
+ ylab = "", xlab = "", main = bquote(b[.(y)](x) == x^.(y))))
+s=sapply(1:length(cp), function(y) curve(pmax(0,x-cp[y])^3, l[1], l[2], yaxt = "n",
+ ylab = "", xlab = "displacement", main = bquote(b[.(y+M-1)](x) == (x-.(cp[y]))["+"]^.(M-1))))
 ```
 
-* Q20: The cubic spline basis.
+* Q20: A basis for the cubic spline (displace) will be a combination of a step function at the knot and polynomials of degree, will be $X, X^2, X^3, (X-290)^3_+$.
