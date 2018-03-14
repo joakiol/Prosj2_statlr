@@ -170,13 +170,29 @@ predict(cv.out, newx =matrix(c(0,150,100,3000,10,82,1,0),nrow=1), s = "lambda.1s
 
 ##3a)
 
-* Q19: Fitting the specified `gam`
-
-```{r,echo=TRUE, eval=TRUE}
+```{r Task3, echo=TRUE, eval=TRUE}
 library(gam)
-gamobject = gam(mpg ~ bs(displace, knots  = 290) + poly(horsepower, 2)  + weight + s(acceleration, 3) + factor(origin),data=ourAutoTrain)
+gamobject = gam(mpg ~ bs(displace, knots  = 290) + poly(horsepower, 2) + weight 
+                + s(acceleration, 3) + factor(origin),data=ourAutoTrain)
 par(mfrow=c(2,3))
 plot(gamobject,se=TRUE,col="blue")
+```
+
+* Q19: The plot shows a fitted GAM, where for each plot all but the displayed variable are held constant to show how the variable affect the response, in this case miles per gallon (mpg). Starting from the upper left corner:
+
+The first plot shows how the displacement affects miles per gallon, and is a cubic spline with a knot in 290. The plot shows an average decrease in miles per gallon as displace increases. Towards the end there is fewer datapoints, and therefore a larger standard deviation. 
+
+In the second plot we have a polynomial regression of degree 2. Here we see that a motor with more horsepower will get fewer miles per gallon, but looks like it will turn around when one gets above 175 horsepower. Since we don't have much data above 150 horsepower the standard deviation are large, and we can't know that it actually will give more miles per gallon for values above 200.
+
+The third plot is a linear regression of the weigt. Her the plot shows that the weight has a linear effect on miles per gallon, and that an increase in the weight decreases miles per gallon. There is large errors toward the edges of the plot, and the standard deviation is linear as well. 
+
+The acceleration is plotted as a smoothing spline with 3 degrees of freedom. It follows a curve that at first has a negative effect on the response, but when we pass 20, it will start to increase miles per gallon. Her we also have a relatively large error towards the edges, which makes it a little hard to interpret.
+
+The oringin is a step function as the variable is categorical. We see tht the third category gives more miles per gallon, but the second and third has relativly large errors as they have fewer data points. Category one has more datapoints, and therefore a smaller standard deviation.
+
+* Q20: A basis for the cubic spline (displace) will be a combination of a step function at the knot and polynomials of degree, will be $X, X^2, X^3, (X-290)^3_+$.
+
+```{r, echo = F}
 M = 4
 cp = c(290)
 l = c(0,500)
@@ -186,5 +202,3 @@ s=sapply(1:(M-1), function(y) curve(x^y, l[1], l[2], yaxt = "n",
 s=sapply(1:length(cp), function(y) curve(pmax(0,x-cp[y])^3, l[1], l[2], yaxt = "n",
  ylab = "", xlab = "displacement", main = bquote(b[.(y+M-1)](x) == (x-.(cp[y]))["+"]^.(M-1))))
 ```
-
-* Q20: A basis for the cubic spline (displace) will be a combination of a step function at the knot and polynomials of degree, will be $X, X^2, X^3, (X-290)^3_+$.
