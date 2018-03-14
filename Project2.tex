@@ -145,7 +145,7 @@
   of \(k\), which all gives different linear regression models. In
   total, the number of models is
   \[\binom{d}{0}+\binom{d}{1}+\dots+\binom{d}{d}.\] The binomial theorem
-  states that \[(1+x)^n=\sum_{k=0}^n \binom{n}{k} x^k.\]. By setting
+  states that \[(1+x)^n=\sum_{k=0}^n \binom{n}{k} x^k.\] By setting
   \(x=1\), we see that the number of different linear regression models
   is given by \[\sum_{k=1}^d \binom{d}{k}=2^d.\]
 \item
@@ -161,7 +161,7 @@
   model with the lowest RSS amongst the \(\binom{d}{k}\) models, to be
   considered later. Now after the for-loop, we have \(d+1\) possible
   models to consider. Calculate
-  \(BIC=\frac{1}{n}(RSS+log(n)k\hat \sigma^2)\) for each, where
+  \(BIC=\frac{1}{n}(RSS+\mathrm{log}(n)k\hat \sigma^2)\) for each, where
   \(\hat \sigma^2\) is a unbiased estimator for the variance, and choose
   the model with the lowest \(BIC\). This is the best model by the best
   subset method, using \(BIC\)-criterion. \(R^2\) is given by
@@ -417,15 +417,23 @@
   coefficients are shrinked and flexibility decreases. However, the bias
   will increase at the same time. In both ridge and lasso regression,
   when \(\lambda \rightarrow \infty\), we have the null model, which
-  means that all of the coefficient estimates are zero. Then the
-  variance approaches zero, but the bias becomes large.
+  means that all of the coefficient estimates except the intercept are
+  zero. Then the variance becomes low, but the bias becomes large. At
+  some point in between, the MSE will be at its lowest.
 \item
   Q13. Ridge regression will include all \(p\) covariates, and thus can
   not be used to perform model selection. However, lasso regression can
   be used in the same way as best subset selection, as the variables are
-  forced to be exactly zero when \(\lambda\) is large. For a given value
-  of \(\lambda\), lasso regression may zero out some of the estimated
-  coefficients and it thus performs a variable selection.
+  forced to be exactly zero when \(\lambda\) is large. As the penalty
+  \(\lambda\) increases, as we see in Figure 1, lasso regression may
+  zero out some of the estimated coefficients and it thus performs a
+  variable selection. We can say that the coefficients going slowest to
+  zero represent the most important covariates. Here, both \texttt{year}
+  and \texttt{cylinders(5.5,8.01{]}} seem to be important variables,
+  similar to what we saw in Problem 1b. It is for some of the other
+  coefficients such as \texttt{weight} difficult to see exactly for
+  which value of \(\lambda\) they become zero, as they have small
+  values.
 \end{itemize}
 
 \includegraphics{Project2_files/figure-latex/unnamed-chunk-4-1.pdf}
@@ -537,8 +545,7 @@ Thus, we get the model fit
 \begin{itemize}
 \tightlist
 \item
-  Q19: The folliwing code shows the fitting of the specified
-  \texttt{gam}:
+  Q19: Fitting the specified \texttt{gam}
 \end{itemize}
 
 \begin{Shaded}
