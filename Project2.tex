@@ -417,15 +417,22 @@
   coefficients are shrinked and flexibility decreases. However, the bias
   will increase at the same time. In both ridge and lasso regression,
   when \(\lambda \rightarrow \infty\), we have the null model, which
-  means that all of the coefficient estimates are zero. Then the
-  variance approaches zero, but the bias becomes large.
+  means that all of the coefficient estimates except the intercept are
+  zero. Then the variance becomes low, but the bias becomes large. At
+  some point in between, the MSE will be at its lowest.
 \item
   Q13. Ridge regression will include all \(p\) covariates, and thus can
   not be used to perform model selection. However, lasso regression can
   be used in the same way as best subset selection, as the variables are
-  forced to be exactly zero when \(\lambda\) is large. For a given value
-  of \(\lambda\), lasso regression may zero out some of the estimated
-  coefficients and it thus performs a variable selection.
+  forced to be exactly zero when \(\lambda\) is large. As the penalty
+  \(\lambda\) increases, as we see in Figure 1, lasso regression may
+  zero out some of the estimated coefficients and it thus performs a
+  variable selection. We can say that the coefficients going slowest to
+  zero represent the most important covariates. Here, both \texttt{year}
+  and \texttt{cylinders(5.5,8.01{]}} seem to be important variables,
+  similar to what we saw in Problem 1b. It is for some of the other
+  coefficients in this case however difficult to see exactly for which
+  value of \(\lambda\) they become zero, as they
 \end{itemize}
 
 \includegraphics{Project2_files/figure-latex/unnamed-chunk-4-1.pdf}
