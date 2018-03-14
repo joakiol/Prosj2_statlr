@@ -21,3 +21,4 @@ par(mfrow=c(2,3))
 plot(gamobject,se=TRUE,col="blue")
 
 
+install.packages("caret")
