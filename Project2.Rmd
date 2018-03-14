@@ -190,11 +190,11 @@ The acceleration is plotted as a smoothing spline with 3 degrees of freedom. It 
 
 The oringin is a step function as the variable is categorical. We see tht the third category gives more miles per gallon, but the second and third has relativly large errors as they have fewer data points. Category one has more datapoints, and therefore a smaller standard deviation.
 
-* Q20: A basis for the cubic spline (displace) will be a combination of a step function at the knot and polynomials of degree, will be $X, X^2, X^3 and (X-c_1)^3_+$, with c_1 = 290 and:
+* Q20: A basis for the cubic spline (displace) will be a combination of a step function at the knot and polynomials of degree, will be $X$, $X^2$, $X^3$ and $(X-c_1)^3_+$, with $c_1 = 290$ and:
 $$
 (X-290)^3_+ =\begin{cases} 
       (x-290)^3 & , \hspace{.1cm} x > 290 \\
-      0 & , \hspace{.1cm} \text{otherwise}
+      0 & , \hspace{.1cm} \text{otherwise.}
     \end{cases}
 $$
 
