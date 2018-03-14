@@ -138,7 +138,7 @@
   possibilities in \(d\) variables, resulting in a total of \(2^d\)
   possible combinations. Thus, the number of different regression models
   is given by \(2^d\). Another way to see this is by investigating each
-  model complexity independently. say we use \(k\) predictors in our
+  model complexity independently. Say we use \(k\) predictors in our
   model. We then choose \(k\) different predictors from \(d\) possible
   ones, and we can not choose the same twice. Hence, the number of
   possible combinations using \(k\) predictors is given by the standard
@@ -151,7 +151,7 @@
   is given by \[\sum_{k=1}^d \binom{d}{k}=2^d.\]
 \item
   Q2: The following algorithm illustrates how the best subset method
-  finds the best model amongst the \(2^d-1\) possible ones: Denote first
+  finds the best model amongst the \(2^d\) possible ones: Denote first
   by \(\mathcal{M}_0\) the model using no predictors. This model simply
   predicts the sample mean for new observations. Next, for
   \(k=1,2,\dots,d\), fit all \(\binom{d}{k}\) models, by solving the
@@ -189,7 +189,8 @@
   actual calculations, and in the summary we can see which predictors
   corresponds to the lowest \(RSS\) for each model complexity. We see
   from this summary, which is printed in the task, that the best model
-  with two predictors uses the ``weight'' and ``year'' columns.
+  with two predictors uses the ``weight'' and ``year'' columns, in
+  addition to the intercept.
 \item
   Q4: Now assuming we have the best model for each model complexity, we
   still want to choose which model complexity to use. As discussed in
@@ -235,8 +236,11 @@
 \NormalTok{trainLm=}\KeywordTok{lm}\NormalTok{(mpg}\OperatorTok{~}\NormalTok{. }\OperatorTok{-}\NormalTok{acceleration, }\DataTypeTok{data=}\NormalTok{ourAutoTrain)}
 \KeywordTok{summary}\NormalTok{(trainLm)}
 \KeywordTok{ad.test}\NormalTok{(}\KeywordTok{rstudent}\NormalTok{(trainLm))}
-\NormalTok{yhat=}\KeywordTok{predict}\NormalTok{(trainLm,ourAutoTest)}
-\NormalTok{MSE_test=}\KeywordTok{mean}\NormalTok{((ourAutoTest}\OperatorTok{$}\NormalTok{mpg}\OperatorTok{-}\NormalTok{yhat)}\OperatorTok{^}\DecValTok{2}\NormalTok{)}
+\NormalTok{yhat_train=}\KeywordTok{predict}\NormalTok{(trainLm,ourAutoTrain)}
+\NormalTok{yhat_test=}\KeywordTok{predict}\NormalTok{(trainLm,ourAutoTest)}
+\NormalTok{MSE_train=}\KeywordTok{mean}\NormalTok{((ourAutoTrain}\OperatorTok{$}\NormalTok{mpg}\OperatorTok{-}\NormalTok{yhat_train)}\OperatorTok{^}\DecValTok{2}\NormalTok{)}
+\NormalTok{MSE_train}
+\NormalTok{MSE_test=}\KeywordTok{mean}\NormalTok{((ourAutoTest}\OperatorTok{$}\NormalTok{mpg}\OperatorTok{-}\NormalTok{yhat_test)}\OperatorTok{^}\DecValTok{2}\NormalTok{)}
 \NormalTok{MSE_test}
 \end{Highlighting}
 \end{Shaded}
@@ -273,6 +277,7 @@
 ## data:  rstudent(trainLm)
 ## A = 2.2684, p-value = 9.241e-06
 ## 
+## [1] 10.18351
 ## [1] 8.931018
 \end{verbatim}
 
