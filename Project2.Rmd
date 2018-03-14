@@ -1,0 +1,176 @@
+---
+title: 'Compulsory exercise 2: Group XX'
+author: "NN1, NN2 and NN3"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: pdf_document
+subtitle: TMA4268 Statistical Learning V2018
+editor_options: 
+  chunk_output_type: console
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,results="hold",message = FALSE,warning=FALSE)
+```
+##1a)
+  
+* Q1: We have $d$ possible predictors. For each predictor, we can either use it, or we can not use it. Hence we have two unique possibilities in $d$ variables, resulting in a total of $2^d$ possible combinations. Thus, the number of different regression models is given by $2^d$. Another way to see this is by investigating each model complexity independently. say we use $k$ predictors in our model. We then choose $k$ different predictors from $d$ possible ones, and we can not choose the same twice. Hence, the number of possible combinations using $k$ predictors is given by the standard nCr-formula $\binom{d}{k}$. Now we have our $d$ different choices of $k$, which all gives different linear regression models. In total, the number of models is
+$$\binom{d}{0}+\binom{d}{1}+\dots+\binom{d}{d}.$$ 
+The binomial theorem states that 
+$$(1+x)^n=\sum_{k=0}^n \binom{n}{k} x^k.$$. By setting $x=1$, we see that the number of different linear regression models is given by 
+$$\sum_{k=1}^d \binom{d}{k}=2^d.$$ 
+* Q2: The following algorithm illustrates how the best subset method finds the best model amongst the $2^d-1$ possible ones: Denote first by $\mathcal{M}_0$ the model using no predictors. This model simply predicts the sample mean for new observations. Next, for $k=1,2,\dots,d$, fit all $\binom{d}{k}$ models, by solving the equation $\hat{\boldsymbol \beta} =(\boldsymbol X^T \boldsymbol X)^{-1} \boldsymbol X^T \boldsymbol Y$, where $\boldsymbol{X}$ and $\boldsymbol{Y}$ only contains the predictors for one specific model. Calculate the RSS, and choose the model with the lowest RSS amongst the $\binom{d}{k}$ models, to be considered later. Now after the for-loop, we have $d+1$ possible models to consider. Calculate $BIC=\frac{1}{n}(RSS+log(n)k\hat \sigma^2)$ for each, where $\hat \sigma^2$ is a unbiased estimator for the variance, and choose the model with the lowest $BIC$. This is the best model by the best subset method, using $BIC$-criterion. $R^2$ is given by $1-RSS/TSS$. In this expression, we do not care how many predictors are being used. This is a problem, because training error is a poor estimate for test error, since it may cause overfitting. A possible solution to this is to add penalties, depending on how many predictors we use. If we were to use $R^2$ instead of $BIC$ to choose the best model, our best model would surely contain all $d$ predictors since over-fitting would make our model fit the training data better. This is unwanted as we would rather have a model that best fit test data, which $BIC$ better simulates. 
+```{r,echo=FALSE,results="hide"}
+library(ISLR)
+ourAuto=data.frame("mpg"=Auto$mpg,"cylinders"=factor(cut(Auto$cylinders,2)),
+                   "displace"=Auto$displacement,"horsepower"=Auto$horsepower,
+                   "weight"=Auto$weight,"acceleration"=Auto$acceleration, 
+                   "year"=Auto$year,"origin"=as.factor(Auto$origin))
+colnames(ourAuto)
+ntot=dim(ourAuto)[1]
+ntot
+set.seed(4268)
+testids=sort(sample(1:ntot,ceiling(0.2*ntot),replace=FALSE))
+ourAutoTrain=ourAuto[-testids,]
+ourAutoTest=ourAuto[testids,]
+library(leaps)
+res=regsubsets(mpg~.,nbest=1,data=ourAutoTrain)
+sumres=summary(res)
+sumres
+plot(res,scale="bic")
+sumres$bic
+which.min(sumres$bic)
+coef(res,id=which.min(sumres$bic))
+```
+
+##1b)
+
+* Q3: As explained in Q2, $RSS$ is calculated for all models, and for each model complexity, we choose the model with the lowest $RSS$ as our best model. The `regsubsets`-function in R performs the actual calculations, and in the summary we can see which predictors corresponds to the lowest $RSS$ for each model complexity. We see from this summary, which is printed in the task, that the best model with two predictors uses the "weight" and "year" columns.
+* Q4: Now assuming we have the best model for each model complexity, we still want to choose which model complexity to use. As discussed in Q2, we would have the smallest $RSS$ for the highest possible model complexity in the training set, but since we want to avoid overfitting, we add penalties to more complex models. Therefore, for each model complexity, we add the penalties according to the $BIC$-criterion, and then choose the model with the lowest value as our best method. The $regsubsets$-function in R also does the calculations for the penalties, using $BIC$-criterion in addition to other penalty-adding methods. Thus we can from the `regsubsets`-function also retrieve the $BIC$-values for each model complexity, and choose the lowest one as our model. The figure above, which is the result of plotting the `regsubsets`-data also contains the necessary information for choosing the best model. On the $y$ scale, we see $BIC$-values for the models of different complexity, and on the $x$-scale we see which predictors are contained in the best model of this complexity, as a black box. We choose the model with the lowest $BIC$-value, which we see has $BIC\approx -520$, and contains seven predictors, all but acceleration. Hence, this is our best model according to the best subset method using $BIC$-criterion on the training data. From the prints in the task we see the more exact value $BIC=-516.9417$, which was rounded off to -520. The following R-code fits this model to the training data, by using the `lm`-function. The summary output gives us information about how well the model fit. We see that all of the $t$-values are fairly high, and the $p$-values for all but one are within the 0.001-significance level, while the last one is within the 0.01 significance level. It is therefore reasonable to assume there is a linear connection between miles per gallon and the variates. We also see R-squared-values relatively close to 1, which indicates a good model fit. We have $RSS=RSE^2(n-k-1)$, so that 
+$$MSE=\frac{RSS}{n}=\frac{RSE^2(n-k-1)}{n}=\frac{3.233^2\cdot 305}{313}=10.185.$$ We have also performed an Anderson-Darling test for Normality. The $p$-value for this test is $9.241\cdot 10^{-6}$, which is very small, and indicates that our data does not have normal distributed errors. ???
+```{r, eval=TRUE,echo=TRUE}
+library(nortest)
+trainLm=lm(mpg~. -acceleration, data=ourAutoTrain)
+summary(trainLm)
+ad.test(rstudent(trainLm))
+yhat=predict(trainLm,ourAutoTest)
+MSE_test=mean((ourAutoTest$mpg-yhat)^2)
+MSE_test
+
+```
+
+* Q5: The code above also predicts new values for the test set, and calculates the test-$MSE$. Here, we got $MSE=8.931$, which actually is smaller than the training $MSE$, indicating that we indeed have managed to avoid overfitting, and made a model which predicts new values pretty well. 
+
+
+##1c)
+
+* Q6. K-fold cross-validation involves dividing the data into $k$ folds, $C_1, C_2, \dots, C_k$. We then want to divide the data into a training and test set, and we choose one of the $k$ parts as the test set, while we let the rest be training data. After fitting the model, we calculate $MSE$ for the specific test folder, as 
+$$MSE_j=\frac{a}{n_k}\sum_{i \in C_j}(y_i-\hat y_i)^2,$$
+where $n_k=n/k$. Furthermore, we want to use all the folds as testing data in turn, while we let the $k-1$ remaining folds be training data to fit different models. Thus, we calculate $MSE_1, MSE_2,\dots, MSE_k$, and finally we give the cross-validation a value as $$CV_k=\frac{n_k}{n}\sum_{j=1}^k MSE_j$$. In our regression setting, we want to do the K-fold cross-validation for all the different complexities, to examine which complexity gives the lowest value $CV_k$. Finally when we have decided which model complexity we want to use, we would fit the linear regression with 
+* Q7. LOOCV suffers from quite high variance, since the training sets only differ with one observation. This makes the training sets have a very high correlation, which can make the average have a high variance. By using k-fold cross-validation instead we can lower the variance. Note however that this is at the cost of a higher bias, since the dataset is smaller by a factor of $(k-1)/k$. k-fold cross-valudation with $k=5$ or $k=10$ is often seen as a compromise between the high variance and the high bias. In addition, it is more expensive to implement LOOVC, since you have to fit $n$ data sets, instead of $k$, resulting in more calculations. It is thus less work using k-fold cross-validation. 
+
+##1d
+
+* Q8. The R-code for performing 10-fold cross validation is below. 
+```{r,eval=TRUE,echo=TRUE,results="hold"}
+library(caret)
+library(leaps)
+predict.regsubsets=function(object,newdata,id){
+  form=as.formula(object$call[[2]])
+  mat=model.matrix(form,newdata)
+  coefi=coef(object,id=id)
+  xvars=names(coefi)
+  mat[,xvars]%*%coefi
+}
+k=10
+set.seed(4268)
+folds=sample(1:k,nrow(ourAutoTrain),replace=TRUE)
+cv.errors=matrix(NA,k,8,dimnames=list(NULL,paste(1:8)))
+for (j in 1:k){
+  best.fit=regsubsets(mpg~.,data=ourAutoTrain[folds!=j,])
+  for (i in 1:8){
+    pred=predict.regsubsets(best.fit,ourAutoTrain[folds==j,],id=i)
+    cv.errors[j,i]=mean((ourAutoTrain$mpg[folds==j]-pred)^2)
+  }
+}
+mean.cv.errors=apply(cv.errors,2,mean)
+mean.cv.errors
+which.min(mean.cv.errors)
+```
+
+
+* Q9. We see from the output of the code the $MSE$ for the different complexities, and we also see we get the lowest $MSE$ when using seven predictors. Hence, we want to use the same model complexity as we did for the $BIC$-criterion. 
+
+```{r,echo=TRUE, eval=TRUE}
+# MSE on test set
+```
+
+* Q10. Now that we have established which model complexity we want to use, we would like to fit this on our entire training set, to get the best model possible. We would therefore use the `regsubsets`-function on the training set, and choose the model using seven predictors. We do however note that this will give us the exact same model as we did for the $BIC$-criterion. Our comments on the model fit for the training set, and the $MSE$ for the training set, is therefore identical to our results in Q4. Also, our predicted new values for the test set, and the MSE for the test set is identical to our results in Q5. We therefore refer to Q4 and Q5 in this task. 
+
+##2a) Explain figures
+
+* Q11. $\lambda$ is a parameter which draws the estimated coeffiecients towards zero in both ridge and lasso regression. For very large $\lambda$'s, all the estimated coefficients are essentially zero. However, in ridge regression, none of the coefficients will be set exactly to zero. In comparison , the penalty term in lasso regression may set some of the coefficient to be exactly zero when $\lambda$ is large enough. In Figure 1, we can see that this is the case, while the coefficients in Figure 2 do not seem to be exactly zero for any value of $\lambda$ in the given interval. Thus, Figure 1 corresponds to lasso regression while Figure 2 corresponds to ridge regression.
+
+
+* Q12. As stated, we can see that the tuning parameter $\lambda$ draws the $\beta$'s towards zero as $\lambda$ increases. In lasso regression, all of the coefficients seem to become exactly zero, while in ridge regression, the coefficients are drawn towards zero, but are not exactly zero. When $\lambda=0$, the penalty term in both ridge and lasso regression will disappear, so the coefficients will just be the same as with least squares estimation. At this value for $\lambda$, the bias is zero, but the variance may be high. As $\lambda$ increases, the variance will become lower as the coefficients are shrinked and flexibility decreases. However, the bias will increase at the same time. In both ridge and lasso regression, when $\lambda \rightarrow \infty$, we have the null model, which means that all of the coefficient estimates are zero. Then the variance approaches zero, but the bias becomes large. 
+
+* Q13. Ridge regression will include all $p$ covariates, and thus can not be used to perform model selection. However, lasso regression can be used in the same way as best subset selection, as the variables are forced to be exactly zero when $\lambda$ is large. For a given value of $\lambda$, lasso regression may zero out some of the estimated coefficients and it thus performs a variable selection.  
+
+```{r,echo=FALSE,results="hide"}
+library(glmnet)
+set.seed(4268)
+
+x=model.matrix(mpg~.,ourAutoTrain)[,-1] #-1 to remove the intercept.
+head(x)
+y=ourAutoTrain$mpg
+
+lambda=c(seq(from=5,to=0.1,length.out=150),0.01,0.0001) #Create a set of tuning parameters, adding low value to also see least squares fit
+cv.out=cv.glmnet(x,y,alpha=1,nfolds=10,lambda=lambda, standardize=TRUE) #alpha=1 gives lasso, alpha=0 gives ridge
+
+plot(cv.out)
+
+```
+
+##2b) Finding the optimal $\lambda$
+
+* Q14: The function cv.glmnet performs a k-fold cross-validation for a sequence of $\lambda$'s, produces a plot and returns an object with different ingredients.
+
+* Q15. The plot shows the cross-validation curve, including the upper and lower standard deviation curves along the sequence of $\lambda$'s. The $\lambda$ with the lowest cross-validated MSE in the plot can be chosen as the optimal $\lambda$:
+```{r}
+cv.out$lambda.min
+```
+
+The `1se-rule`, is another way to choose which $\lambda$ is optimal. In the object returned by `cv.glmnet`, one of the values is `lambda.1se`, which is the largest value of $\lambda$ such that the error is within one standard error of the minimum.
+
+
+* Q16: By using the `1se-rule`, we get that the optimal $\lambda$ is
+
+```{r,echo=TRUE, eval=TRUE}
+cv.out$lambda.1se
+```
+
+##2c) Prediction
+
+* Q17: Using lasso regression with the optimal value of $\lambda$ according to the `1se-rule`, $\lambda=0.01$, we can fit the model. The coefficient estimates are
+```{r,echo=TRUE, eval=TRUE}
+coef(cv.out,s="lambda.1se")
+```
+
+Thus, we get the model fit $\hat{y}=-21.408-3.375x_{cylinders}+0.031x_{displace}-0.036x_{horsepower}-0.006x_{weight}+0.122x_{acceleration}+0.782x_{year}+1.676x_{origin2}+2.832x_{origin3}$.
+
+
+* Q18: Using this model with optimal $\lambda$ chosen according to the `1se-rule`, we can predict `mpg` for cars based on their data. For a car with 4 cylinders, `displace=150`, `horsepower=100`, `weight=3000`, `acceleration=10`, `year=82` and which comes from Europe, `mpg` is predicted as
+```{r,,echo=TRUE, eval=TRUE}
+predict(cv.out, newx =matrix(c(0,150,100,3000,10,82,1,0),nrow=1), s = "lambda.1se")
+```
+
+
+##3a)
+
+* Q19: Fitting the specified `gam`
+
+```{r,echo=TRUE, eval=TRUE}
+library(gam)
+# write R code
+```
+
+* Q20: The cubic spline basis.
