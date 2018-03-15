@@ -33,6 +33,14 @@ par(mfrow=c(2,3))
 plot(gamobject,se=TRUE,col="blue")
 ```
 
+The first plot shows how the displacement affects miles per gallon, and we see that 
+We see that a motor with more horsepower will get fewer miles per gallon, but looks like it will turn around when one gets above 175 horsepower. Since we don't have much data above 150 horsepower are the confidence-interval large, and we can't know that it actually will give more miles per gallon for values above 200.
+
+We see that the weight probably has a linear effect on miles per gallon, and that larger weights give less miles per gallon. Due to large uncertainty, it is possible that it has close to zero effect (even can give more miles per gallon), but probably not.
+
+
+
+
 * Q20: A basis for the cubic spline (displace) will be a combination of a step function at the knot and polynomials of degree, will be $X, X^2, X^3, (X-290)^3_+$.
 
 ```{r, echo = F}
